@@ -3,10 +3,10 @@ describe('rowSearcher', function() {
       rows, columns, rowSearcher, uiGridConstants, filter;
 
   var data = [
-    { "name": "Ethel Price", "gender": "female", "company": "Enersol" },
-    { "name": "Claudine Neal", "gender": "female", "company": "Sealoud" },
-    { "name": "Beryl Rice", "gender": "female", "company": "Velity" },
-    { "name": "Wilder Gonzales", "gender": "male", "company": "Geekko" }
+    { "name": "Ethel Price", "gender": "female", "company": "Enersol", "isActive" : true },
+    { "name": "Claudine Neal", "gender": "female", "company": "Sealoud", "isActive" : false },
+    { "name": "Beryl Rice", "gender": "female", "company": "Velity", "isActive" : true },
+    { "name": "Wilder Gonzales", "gender": "male", "company": "Geekko", "isActive" : false }
   ];
 
   beforeEach(module('ui.grid'));
@@ -16,35 +16,22 @@ describe('rowSearcher', function() {
     rowSearcher = _rowSearcher_;
     uiGridConstants = _uiGridConstants_;
 
-    // $compile = _$compile_;
-
-    // $scope.gridOpts = {
-    //   data: data
-    // };
-
-    // recompile = function () {
-    //   grid = angular.element('<div style="width: 500px; height: 300px" ui-grid="gridOpts"></div>');
-    //   // document.body.appendChild(grid[0]);
-    //   $compile(grid)($scope);
-    //   $scope.$digest();
-    // };
-
-    // recompile();
-
     grid = new Grid({
         id: 1,
         enableFiltering: true
     });
 
     rows = grid.rows = [
-      new GridRow({ name: 'Bill', company: 'Gruber, Inc.', age: 25 }, 0, grid),
-      new GridRow({ name: 'Frank', company: 'Foo Co', age: 45 }, 1, grid)
+      new GridRow({ name: 'Bill', company: 'Gruber, Inc.', age: 25, isActive: true }, 0, grid),
+      new GridRow({ name: 'Frank', company: 'Foo Co', age: 45, isActive: false }, 1, grid),
+      new GridRow({ name: 'Joe', company: 'Movers, Inc.', age: 0, isActive: false }, 2, grid)
     ];
 
     columns = grid.columns = [
       new GridColumn({ name: 'name' }, 0, grid),
       new GridColumn({ name: 'company' }, 1, grid),
-      new GridColumn({ name: 'age' }, 2, grid)
+      new GridColumn({ name: 'age' }, 2, grid),
+      new GridColumn({ name: 'isActive' }, 3, grid)
     ];
 
     filter = null;
@@ -96,10 +83,10 @@ describe('rowSearcher', function() {
       expect(rowSearcher.guessCondition(filter)).toEqual(re);
     });
 
-    it('should guess STARTS_WITH when term has no *s', function() {
+    it('should guess CONTAINS when term has no *s', function() {
       var filter = { term: 'blah' };
 
-      expect(rowSearcher.guessCondition(filter)).toEqual(uiGridConstants.filter.STARTS_WITH, 'STARTS_WITH');
+      expect(rowSearcher.guessCondition(filter)).toEqual(uiGridConstants.filter.CONTAINS, 'CONTAINS');
     });
 
 
@@ -151,10 +138,9 @@ describe('rowSearcher', function() {
     it('should run the search', function () {
       setFilter(columns[0], 'il', uiGridConstants.filter.CONTAINS);
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(false);
+      expect(ret.length).toEqual(1);
     });
   });
 
@@ -163,10 +149,9 @@ describe('rowSearcher', function() {
       setFilter(columns[0], 'il', uiGridConstants.filter.CONTAINS);
       setFilter(columns[1], 'ub', uiGridConstants.filter.CONTAINS);
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(false);
+      expect(ret.length).toEqual(1);
     });
   });
 
@@ -177,9 +162,9 @@ describe('rowSearcher', function() {
 
       rows.splice(1);
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(false);
+      expect(ret.length).toEqual(0);
     });
   });
 
@@ -187,10 +172,9 @@ describe('rowSearcher', function() {
     it('needs to match', function () {
       setFilter(columns[0], 'Bil*');
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(false);
+      expect(ret.length).toEqual(1);
     });
   });
 
@@ -198,10 +182,9 @@ describe('rowSearcher', function() {
     it('needs to match', function () {
       setFilter(columns[0], '*ll');
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(false);
+      expect(ret.length).toEqual(1);
     });
   });
 
@@ -209,10 +192,9 @@ describe('rowSearcher', function() {
     it('needs to match', function () {
       setFilter(columns[0], 'B*ll');
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(false);
+      expect(ret.length).toEqual(1);
     });
   });
 
@@ -220,10 +202,27 @@ describe('rowSearcher', function() {
     it('should match zero characters too', function () {
       setFilter(columns[0], 'Bi*ll');
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(false);
+      expect(ret.length).toEqual(1);
+    });
+  });
+
+  describe('with logically falsy terms (0 and false)', function() {
+    it('should filter by false', function() {
+      setFilter(columns[3], false);
+
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
+
+      expect(ret.length).toEqual(2);
+    });
+
+    it('should filter by 0', function() {
+      setFilter(columns[2], 0);
+
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
+
+      expect(ret.length).toEqual(1);
     });
   });
 
@@ -232,13 +231,12 @@ describe('rowSearcher', function() {
       grid.options.useExternalFiltering = true;
       setFilter(columns[0], 'Bi*ll');
 
-      var ret = rowSearcher.search(grid, rows, columns);
+      var ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
 
-      expect(ret[0].visible).toBe(true);
-      expect(ret[1].visible).toBe(true);
+      expect(ret.length).toEqual(3);
     });
   });
-  
+
   describe('with a custom filter function', function() {
     var custom, ret;
     beforeEach(function() {
@@ -252,7 +250,7 @@ describe('rowSearcher', function() {
         var orEqualTo = secondChar === '=';
         var trimBy = orEqualTo ? 2 : 1 ;
         var compareTo;
-        
+
         if (firstChar === '>') {
           compareTo = searchTerm.substr(trimBy) * 1;
           return orEqualTo ? rowValue >= compareTo : rowValue > compareTo;
@@ -268,16 +266,15 @@ describe('rowSearcher', function() {
 
       spyOn(custom, 'filterFn').andCallThrough();
       setFilter(columns[2], '>27', custom.filterFn);
-      ret = rowSearcher.search(grid, rows, columns);
+      ret = rowSearcher.search(grid, rows, columns).filter(function(row){ return row.visible; });
     });
     it('should run the function for each row', function() {
-      expect(custom.filterFn.calls.length).toEqual(2);
+      expect(custom.filterFn.calls.length).toEqual(3);
       expect(custom.filterFn.calls[0].args).toEqual(['>27', 25, rows[0], columns[2]]);
       expect(custom.filterFn.calls[1].args).toEqual(['>27', 45, rows[1], columns[2]]);
     });
     it('should honor the result of the function call when filtering', function() {
-      expect(ret[0].visible).toBe(false);
-      expect(ret[1].visible).toBe(true);
+      expect(ret.length).toEqual(1);
     });
   });
 

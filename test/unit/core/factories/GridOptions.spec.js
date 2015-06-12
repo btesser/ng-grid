@@ -36,7 +36,7 @@ describe('GridOptions factory', function () {
         scrollThreshold: 4,
         excessColumns: 4,
         horizontalScrollThreshold: 2,
-        aggregationCalcThrottle: 1000,
+        aggregationCalcThrottle: 500,
         wheelScrollThrottle: 70,
         scrollDebounce: 300,
         enableSorting: true,
@@ -48,7 +48,8 @@ describe('GridOptions factory', function () {
         minimumColumnSize: 10,
         rowEquality: jasmine.any(Function),
         headerTemplate: null,
-        footerTemplate: null,
+        footerTemplate: 'ui-grid/ui-grid-footer',
+        gridFooterTemplate: 'ui-grid/ui-grid-grid-footer',
         rowTemplate: 'ui-grid/ui-grid-row',
         appScopeProvider: null
       });
@@ -93,6 +94,7 @@ describe('GridOptions factory', function () {
         rowEquality: testFunction,
         headerTemplate: 'testHeader',
         footerTemplate: 'testFooter',
+        gridFooterTemplate: 'testGridFooter',
         rowTemplate: 'testRow',
         extraOption: 'testExtraOption',
         appScopeProvider : 'anotherRef'
@@ -135,6 +137,7 @@ describe('GridOptions factory', function () {
         rowEquality: testFunction,
         headerTemplate: 'testHeader',
         footerTemplate: 'testFooter',
+        gridFooterTemplate: 'testGridFooter',
         rowTemplate: 'testRow',
         extraOption: 'testExtraOption',
         appScopeProvider : 'anotherRef'
@@ -180,6 +183,7 @@ describe('GridOptions factory', function () {
         rowEquality: testFunction,
         headerTemplate: 'testHeader',
         footerTemplate: 'testFooter',
+        gridFooterTemplate: 'testGridFooter',
         rowTemplate: 'testRow',
         extraOption: 'testExtraOption'
       };
@@ -221,6 +225,7 @@ describe('GridOptions factory', function () {
         rowEquality: testFunction,
         headerTemplate: 'testHeader',
         footerTemplate: 'testFooter',
+        gridFooterTemplate: 'testGridFooter',
         rowTemplate: 'testRow',
         extraOption: 'testExtraOption',
         appScopeProvider : null

@@ -119,10 +119,24 @@ angular.module('ui.grid')
 
     self.aggregationValue = undefined;
 
-    var updateAggregationValue = function() {
+    // The footer cell registers to listen for the rowsRendered event, and calls this.  Needed to be
+    // in something with a scope so that the dereg would get called
+    self.updateAggregationValue = function() {
 
      // gridUtil.logDebug('getAggregationValue for Column ' + self.colDef.name);
 
+      /** 
+       * @ngdoc property
+       * @name aggregationType
+       * @propertyOf ui.grid.class:GridOptions.columnDef
+       * @description The aggregation that you'd like to show in the columnFooter for this
+       * column.  Valid values are in uiGridConstants, and currently include `uiGridConstants.aggregationTypes.count`, 
+       * `uiGridConstants.aggregationTypes.sum`, `uiGridConstants.aggregationTypes.avg`, `uiGridConstants.aggregationTypes.min`, 
+       * `uiGridConstants.aggregationTypes.max`.
+       * 
+       * You can also provide a function as the aggregation type, in this case your function needs to accept the full
+       * set of visible rows, and return a value that should be shown 
+       */
       if (!self.aggregationType) {
         self.aggregationValue = undefined;
         return;
@@ -173,10 +187,7 @@ angular.module('ui.grid')
       }
     };
 
-    var throttledUpdateAggregationValue = gridUtil.throttle(updateAggregationValue, self.grid.options.aggregationCalcThrottle);
-
-
-
+//     var throttledUpdateAggregationValue = gridUtil.throttle(updateAggregationValue, self.grid.options.aggregationCalcThrottle, { trailing: true, context: self.name });
 
     /**
      * @ngdoc function
@@ -186,15 +197,12 @@ angular.module('ui.grid')
      * Debounced using scrollDebounce option setting
      */
     this.getAggregationValue =  function() {
-      if (!self.grid.isScrollingVertically && !self.grid.isScrollingHorizontally) {
-        throttledUpdateAggregationValue();
-      }
+//      if (!self.grid.isScrollingVertically && !self.grid.isScrollingHorizontally) {
+//        throttledUpdateAggregationValue();
+//      }
 
       return self.aggregationValue;
-    } ;
-
-
-
+    };
   }
 
 
@@ -278,10 +286,12 @@ angular.module('ui.grid')
    * @ngdoc property
    * @name sort
    * @propertyOf ui.grid.class:GridOptions.columnDef
-   * @description Can be used to set the sort direction for the column, values are
-   * uiGridConstants.ASC or uiGridConstants.DESC
+   * @description An object of sort information, attributes are:
+   * 
+   * - direction: values are uiGridConstants.ASC or uiGridConstants.DESC
+   * - ignoreSort: if set to true this sort is ignored (used by tree to manipulate the sort functionality)
    * @example
-   * <pre>  $scope.gridOptions.columnDefs = [ { field: 'field1', sort: { direction: uiGridConstants.ASC }}] </pre>
+   * <pre>  $scope.gridOptions.columnDefs = [ { field: 'field1', sort: { direction: uiGridConstants.ASC, ignoreSort: true }}] </pre>
    */
   
 
@@ -477,12 +487,13 @@ angular.module('ui.grid')
 
     /**
      * @ngdoc property
-     * @name tooltip
+     * @name cellTooltip
      * @propertyOf ui.grid.class:GridOptions.columnDef
      * @description Whether or not to show a tooltip when a user hovers over the cell.
      * If set to false, no tooltip.  If true, the cell value is shown in the tooltip (useful
      * if you have long values in your cells), if a function then that function is called
-     * passing in the row and the col `cellTooltip( row, col )`, and the return value is shown in the tooltip.
+     * passing in the row and the col `cellTooltip( row, col )`, and the return value is shown in the tooltip,
+     * if it is a static string then displays that static string.
      * 
      * Defaults to false
      *
@@ -493,9 +504,41 @@ angular.module('ui.grid')
       self.cellTooltip = function(row, col) {
         return self.grid.getCellValue( row, col );
       };
-    } else {
+    } else if (typeof(colDef.cellTooltip) === 'function' ){
       self.cellTooltip = colDef.cellTooltip;
+    } else {
+      self.cellTooltip = function ( row, col ){
+        return col.colDef.cellTooltip;
+      };
     }
+
+    /**
+     * @ngdoc property
+     * @name headerTooltip
+     * @propertyOf ui.grid.class:GridOptions.columnDef
+     * @description Whether or not to show a tooltip when a user hovers over the header cell.
+     * If set to false, no tooltip.  If true, the displayName is shown in the tooltip (useful
+     * if you have long values in your headers), if a function then that function is called
+     * passing in the row and the col `headerTooltip( col )`, and the return value is shown in the tooltip,
+     * if a static string then shows that static string.
+     * 
+     * Defaults to false
+     *
+     */
+    if ( typeof(colDef.headerTooltip) === 'undefined' || colDef.headerTooltip === false ) {
+      self.headerTooltip = false;
+    } else if ( colDef.headerTooltip === true ){
+      self.headerTooltip = function(col) {
+        return col.displayName;
+      };
+    } else if (typeof(colDef.headerTooltip) === 'function' ){
+      self.headerTooltip = colDef.headerTooltip;
+    } else {
+      self.headerTooltip = function ( col ) {
+        return col.colDef.headerTooltip;
+      };
+    }
+
 
     /**
      * @ngdoc property
@@ -627,14 +670,14 @@ angular.module('ui.grid')
       defaultFilters.push({});
     }
 
-    /** 
+    /**
      * @ngdoc property
      * @name filter
      * @propertyOf ui.grid.class:GridOptions.columnDef
      * @description Specify a single filter field on this column.
-     * 
+     *
      * A filter consists of a condition, a term, and a placeholder:
-     * 
+     *
      * - condition defines how rows are chosen as matching the filter term. This can be set to
      * one of the constants in uiGridConstants.filter, or you can supply a custom filter function
      * that gets passed the following arguments: [searchTerm, cellValue, row, column].
@@ -649,8 +692,10 @@ angular.module('ui.grid')
      * then a select box will be shown with options selectOptions
      * - selectOptions: options in the format `[ { value: 1, label: 'male' }]`.  No i18n filter is provided, you need
      * to perform the i18n on the values before you provide them
+     * - disableCancelFilterButton: defaults to false. If set to true then the 'x' button that cancels/clears the filter
+     * will not be shown.
      * @example
-     * <pre>$scope.gridOptions.columnDefs = [ 
+     * <pre>$scope.gridOptions.columnDefs = [
      *   {
      *     field: 'field1',
      *     filter: {
@@ -659,12 +704,16 @@ angular.module('ui.grid')
      *       placeholder: 'starts with...',
      *       flags: { caseSensitive: false },
      *       type: uiGridConstants.filter.SELECT,
-     *       selectOptions: [ { value: 1, label: 'male' }, { value: 2, label: 'female' } ]
+     *       selectOptions: [ { value: 1, label: 'male' }, { value: 2, label: 'female' } ],
+     *       disableCancelFilterButton: true
      *     }
      *   }
      * ]; </pre>
      *
      */
+
+    /*
+
   
     /*
 
@@ -710,7 +759,7 @@ angular.module('ui.grid')
     // as is
     GridColumn.prototype.unsort = function () {
       this.sort = {};
-      self.grid.api.core.raise.sortChanged( self, self.grid.getColumnSorting() );
+      self.grid.api.core.raise.sortChanged( self.grid, self.grid.getColumnSorting() );
     };
   
   };

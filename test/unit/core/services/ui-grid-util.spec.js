@@ -53,7 +53,7 @@ describe('ui.grid.utilService', function() {
       x++;
     };
 
-    it('prevents multiple function calls', inject(function ($timeout) {
+    it('prevents multiple function calls', inject(function ($interval) {
       x = 0;
 
       var throttledFunc = gridUtil.throttle(func, 10);
@@ -61,11 +61,11 @@ describe('ui.grid.utilService', function() {
       throttledFunc();
       throttledFunc();
       expect(x).toEqual(1);
-      $timeout.flush();
+      $interval.flush(15);
       expect(x).toEqual(1);
     }));
 
-    it('queues a final event if trailing param is truthy', inject(function ($timeout) {
+    it('queues a final event if trailing param is truthy', inject(function ($interval) {
       x = 0;
 
       var throttledFunc = gridUtil.throttle(func, 10, {trailing: true});
@@ -73,7 +73,7 @@ describe('ui.grid.utilService', function() {
       throttledFunc();
       throttledFunc();
       expect(x).toEqual(1);
-      $timeout.flush();
+      $interval.flush(15);
       expect(x).toEqual(2);
     }));
 
@@ -105,7 +105,7 @@ describe('ui.grid.utilService', function() {
       translationExpects.forEach( function (set) {
         var strIn = set[0];
         var strOut = set[1];
-        
+
         expect(gridUtil.readableColumnName(strIn)).toEqual(strOut);
       });
     });
@@ -139,7 +139,7 @@ describe('ui.grid.utilService', function() {
       ]);
     });
   });
-  
+
   describe('getColumnsFromData', function() {
     it('should create column defs from a data array omitting $$hashKey', function() {
       var data = [
@@ -149,7 +149,7 @@ describe('ui.grid.utilService', function() {
           $$hashKey: '00A'
         }
       ];
-      
+
       var excludeProperties = ['$$hashKey'];
 
       var columns = gridUtil.getColumnsFromData(data, excludeProperties);
@@ -199,7 +199,8 @@ describe('ui.grid.utilService', function() {
         expect(w).toEqual(300);
       });
 
-      it('should work with hidden element', function() {
+      // Width is no longer calculated for hidden elements
+      xit('should work with hidden element', function() {
         angular.element(elm).remove();
 
         elm = document.createElement('div');
@@ -367,7 +368,7 @@ describe('ui.grid.utilService', function() {
   describe('resetUids()', function () {
     it('should reset the UID index back to 000', function () {
       gridUtil.resetUids();
-      
+
       for (var i = 0; i < 50; i++) {
         gridUtil.nextUid();
       }
@@ -510,6 +511,15 @@ describe('ui.grid.utilService', function() {
         expect(result).toMatch(/\[\[/, 'template has custom start interpolation symbols');
         expect(result).toMatch(/\]\]/, 'template has custom end interpolation symbols');
       }));
+    });
+  });
+
+  describe('rtlScrollType', function () {
+    it('should not throw an exception', function () {
+      // This was throwing an exception in IE because IE doesn't have a native <element>.remove() method.
+      expect(function () {
+        gridUtil.rtlScrollType();
+      }).not.toThrow();
     });
   });
 });

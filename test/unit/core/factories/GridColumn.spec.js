@@ -114,18 +114,18 @@ describe('GridColumn factory', function () {
 
         buildCols();
 
-        expect(grid.columns[0].displayName).toEqual('Age');
-        expect(grid.columns[1].displayName).toEqual('Name');
-        expect(grid.columns[2].displayName).toEqual('Name2');
-        expect(grid.columns[3].displayName).toEqual('Name3');
+        expect(grid.columns[0].name).toEqual('age');
+        expect(grid.columns[1].name).toEqual('name');
+        expect(grid.columns[2].name).toEqual('name2');
+        expect(grid.columns[3].name).toEqual('name3');
       });
 
-      it('should account for existing incremented names', function () {
+      it('should not change the displayNames if they are provided', function () {
         var cols = [
           { field: 'age' },
-          { field: 'name' },
-          { field: 'name', name: 'Name3' },
-          { field: 'name' }
+          { field: 'name', displayName:'First Name' },
+          { field: 'name', displayName:'First Name' },
+          { field: 'name', displayName:'First Name' }
         ];
 
         grid.options.columnDefs = cols;
@@ -133,9 +133,28 @@ describe('GridColumn factory', function () {
         buildCols();
 
         expect(grid.columns[0].displayName).toEqual('Age');
-        expect(grid.columns[1].displayName).toEqual('Name');
-        expect(grid.columns[2].displayName).toEqual('Name3');
-        expect(grid.columns[3].displayName).toEqual('Name4');
+        expect(grid.columns[1].displayName).toEqual('First Name');
+        expect(grid.columns[2].displayName).toEqual('First Name');
+        expect(grid.columns[3].displayName).toEqual('First Name');
+
+      });
+
+      it('should account for existing incremented names', function () {
+        var cols = [
+          { field: 'age' },
+          { field: 'name' },
+          { field: 'name', name: 'name3' },
+          { field: 'name' }
+        ];
+
+        grid.options.columnDefs = cols;
+
+        buildCols();
+
+        expect(grid.columns[0].name).toEqual('age');
+        expect(grid.columns[1].name).toEqual('name');
+        expect(grid.columns[2].name).toEqual('name3');
+        expect(grid.columns[3].name).toEqual('name2');
       });
     });
   });
@@ -191,10 +210,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[0].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[0].getAggregationValue()).toEqual(5);
       expect(grid.columns[0].getAggregationText()).toEqual('total rows: ');
+      deregFn();
     });
 
     it('count, without label', function() {
@@ -203,10 +226,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[0].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[0].getAggregationValue()).toEqual(5);
       expect(grid.columns[0].getAggregationText()).toEqual('');
+      deregFn();
     });
 
     it('sum, with label', function() {
@@ -214,10 +241,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(15);
       expect(grid.columns[1].getAggregationText()).toEqual('total: ');
+      deregFn();
     });
 
     it('sum, without label', function() {
@@ -226,10 +257,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(15);
       expect(grid.columns[1].getAggregationText()).toEqual('');
+      deregFn();
     });
 
     it('avg, with label', function() {
@@ -237,10 +272,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(3);
       expect(grid.columns[1].getAggregationText()).toEqual('avg: ');
+      deregFn();
     });
 
     it('avg, without label', function() {
@@ -249,10 +288,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(3);
       expect(grid.columns[1].getAggregationText()).toEqual('');
+      deregFn();
     });    
 
     it('min, with label', function() {
@@ -260,10 +303,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(1);
       expect(grid.columns[1].getAggregationText()).toEqual('min: ');
+      deregFn();
     });
 
     it('min, without label', function() {
@@ -272,10 +319,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(1);
       expect(grid.columns[1].getAggregationText()).toEqual('');
+      deregFn();
     });
 
     it('max, with label', function() {
@@ -283,10 +334,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(5);
       expect(grid.columns[1].getAggregationText()).toEqual('max: ');
+      deregFn();
     });
 
     it('max, without label', function() {
@@ -295,10 +350,14 @@ describe('GridColumn factory', function () {
       
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
       
       expect(grid.columns[1].getAggregationValue()).toEqual(5);
       expect(grid.columns[1].getAggregationText()).toEqual('');
+      deregFn();
     });
 
     it('max, with custom label', function() {
@@ -310,10 +369,14 @@ describe('GridColumn factory', function () {
 
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
 
       expect(grid.columns[1].getAggregationValue()).toEqual(5);
       expect(grid.columns[1].getAggregationText()).toEqual(customLabel);
+      deregFn();
     });
 
     it('max, with custom label while also being hidden', function() {
@@ -325,10 +388,14 @@ describe('GridColumn factory', function () {
 
       buildCols();
       grid.modifyRows(grid.options.data);
+
+      // this would be called by the footer cell if it were rendered 
+      var deregFn = grid.api.core.on.rowsRendered(null, grid.columns[1].updateAggregationValue);
       grid.setVisibleRows(grid.rows);
 
       expect(grid.columns[1].getAggregationValue()).toEqual(5);
       expect(grid.columns[1].getAggregationText()).toEqual('');
+      deregFn();
     });
   });
 

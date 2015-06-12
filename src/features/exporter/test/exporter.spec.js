@@ -44,6 +44,7 @@ describe('ui.grid.exporter uiGridExporterService', function () {
     grid.rows[1].visible = false;
     grid.columns[2].visible = false;
     grid.setVisibleRows(grid.rows);
+    grid.setVisibleColumns(grid.columns);
 
     grid.api.selection.clearSelectedRows();
     grid.api.selection.selectRow(grid.rows[0].entity);
@@ -69,6 +70,7 @@ describe('ui.grid.exporter uiGridExporterService', function () {
         exporterMenuLabel: 'Export',
         exporterCsvColumnSeparator: ',',
         exporterCsvFilename: 'download.csv',
+        exporterPdfFilename: 'download.pdf',
         exporterOlderExcelCompatibility: false,
         exporterPdfDefaultStyle : { fontSize : 11 },
         exporterPdfTableStyle : { margin : [ 0, 5, 0, 15 ] },
@@ -84,17 +86,19 @@ describe('ui.grid.exporter uiGridExporterService', function () {
         exporterMenuCsv: true,
         exporterMenuPdf: true,
         exporterFieldCallback: jasmine.any(Function),
+        exporterAllDataFn: null,
         exporterSuppressColumns: []        
       });
     });
 
-    it('set all options to non-default', function() {
+    it('set all options to non-default, including using deprecated exporterAllDataPromise', function() {
       var callback = function() {};
       options = {
         exporterSuppressMenu: true,
         exporterMenuLabel: 'custom export button',
         exporterCsvColumnSeparator: ';',
         exporterCsvFilename: 'myfile.csv',
+        exporterPdfFilename: 'myfile.pdf',
         exporterOlderExcelCompatibility: true,
         exporterPdfDefaultStyle : { fontSize : 12 },
         exporterPdfTableStyle : { margin : [ 15, 5, 15, 15 ] },
@@ -110,6 +114,7 @@ describe('ui.grid.exporter uiGridExporterService', function () {
         exporterMenuCsv: false,
         exporterMenuPdf: false,
         exporterFieldCallback: callback,
+        exporterAllDataPromise: callback,
         exporterSuppressColumns: [ 'buttons' ]
       };
       uiGridExporterService.defaultGridOptions(options);
@@ -118,6 +123,7 @@ describe('ui.grid.exporter uiGridExporterService', function () {
         exporterMenuLabel: 'custom export button',
         exporterCsvColumnSeparator: ';',
         exporterCsvFilename: 'myfile.csv',
+        exporterPdfFilename: 'myfile.pdf',
         exporterOlderExcelCompatibility: true,
         exporterPdfDefaultStyle : { fontSize : 12 },
         exporterPdfTableStyle : { margin : [ 15, 5, 15, 15 ] },
@@ -133,6 +139,8 @@ describe('ui.grid.exporter uiGridExporterService', function () {
         exporterMenuCsv: false,
         exporterMenuPdf: false,
         exporterFieldCallback: callback,
+        exporterAllDataFn: callback,
+        exporterAllDataPromise: callback,
         exporterSuppressColumns: [ 'buttons' ]
       });
     });    

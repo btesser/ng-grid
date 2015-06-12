@@ -69,9 +69,37 @@ angular.module('ui.grid')
        * @name data
        * @propertyOf ui.grid.class:GridOptions
        * @description (mandatory) Array of data to be rendered into the grid, providing the data source or data binding for 
-       * the grid.  The most common case is an array of objects, where each object has a number of attributes.
+       * the grid.
+       * 
+       * Most commonly the data is an array of objects, where each object has a number of attributes.
        * Each attribute automatically becomes a column in your grid.  This array could, for example, be sourced from
-       * an angularJS $resource query request.  The array can also contain complex objects.
+       * an angularJS $resource query request.  The array can also contain complex objects, refer the binding tutorial 
+       * for examples of that.
+       * 
+       * The most flexible usage is to set your data on $scope:
+       * 
+       * `$scope.data = data;`
+       * 
+       * And then direct the grid to resolve whatever is in $scope.data:
+       * 
+       * `$scope.gridOptions.data = 'data';`
+       * 
+       * This is the most flexible approach as it allows you to replace $scope.data whenever you feel like it without
+       * getting pointer issues.
+       * 
+       * Alternatively you can directly set the data array:
+       * 
+       * `$scope.gridOptions.data = [ ];`
+       * or
+       * 
+       * `$http.get('/data/100.json')
+       * .success(function(data) {
+       *   $scope.myData = data;
+       *   $scope.gridOptions.data = $scope.myData;
+       *  });`
+       * 
+       * Where you do this, you need to take care in updating the data - you can't just update `$scope.myData` to some other 
+       * array, you need to update $scope.gridOptions.data to point to that new array as well.
        * 
        */
       baseOptions.data = baseOptions.data || [];
@@ -156,9 +184,9 @@ angular.module('ui.grid')
       };
 
       /**
-       * @ngdoc function
+       * @ngdoc property
        * @name flatEntityAccess
-       * @methodOf ui.grid.class:GridOptions
+       * @propertyOf ui.grid.class:GridOptions
        * @description Set to true if your columns are all related directly to fields in a flat object structure - i.e. 
        * each of your columns associate directly with a propery one each of the entities in your data array.
        * 
@@ -303,9 +331,9 @@ angular.module('ui.grid')
        * @ngdoc property
        * @name aggregationCalcThrottle
        * @propertyOf ui.grid.class:GridOptions
-       * @description Default time in milliseconds to throttle aggregation calcuations, defaults to 1000ms
+       * @description Default time in milliseconds to throttle aggregation calcuations, defaults to 500ms
        */
-      baseOptions.aggregationCalcThrottle = typeof(baseOptions.aggregationCalcThrottle) !== "undefined" ? baseOptions.aggregationCalcThrottle : 1000;
+      baseOptions.aggregationCalcThrottle = typeof(baseOptions.aggregationCalcThrottle) !== "undefined" ? baseOptions.aggregationCalcThrottle : 500;
   
       /**
        * @ngdoc property
@@ -427,12 +455,22 @@ angular.module('ui.grid')
        * @ngdoc string
        * @name footerTemplate
        * @propertyOf ui.grid.class:GridOptions
-       * @description (optional) Null by default. When provided, this setting uses a custom footer
-       * template. Can be set to either the name of a template file 'footer_template.html', inline html
+       * @description (optional) ui-grid/ui-grid-footer by default.  This footer shows the per-column
+       * aggregation totals. 
+       * When provided, this setting uses a custom footer template. Can be set to either the name of a template file 'footer_template.html', inline html
        * <pre>'<div class="ui-grid-bottom-panel" style="text-align: center">I am a Custom Grid Footer</div>'</pre>, or the id
        * of a precompiled template (TBD how to use this).  Refer to the custom footer tutorial for more information.
        */
-      baseOptions.footerTemplate = baseOptions.footerTemplate || null;
+      baseOptions.footerTemplate = baseOptions.footerTemplate || 'ui-grid/ui-grid-footer';
+  
+      /**
+       * @ngdoc string
+       * @name gridFooterTemplate
+       * @propertyOf ui.grid.class:GridOptions
+       * @description (optional) ui-grid/ui-grid-grid-footer by default. This template by default shows the
+       * total items at the bottom of the grid, and the selected items if selection is enabled.
+       */
+      baseOptions.gridFooterTemplate = baseOptions.gridFooterTemplate || 'ui-grid/ui-grid-grid-footer';
   
       /**
        * @ngdoc string

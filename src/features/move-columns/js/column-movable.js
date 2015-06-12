@@ -253,7 +253,7 @@
                  * - if we are a touchstart then we listen for a touchmove, if we are a mousedown we listen for
                  * a mousemove (i.e. a drag) before we decide that there's a move underway.  If there's never a move,
                  * and we instead get a mouseup or a touchend, then we just drop out again and do nothing.
-                 * 
+                 *
                  */
                 var $contentsElm = angular.element( $elm[0].querySelectorAll('.ui-grid-cell-contents') );
 
@@ -269,6 +269,10 @@
                 var downFn = function( event ){
                   //Setting some variables required for calculations.
                   gridLeft = $scope.grid.element[0].getBoundingClientRect().left;
+                  if ( $scope.grid.hasLeftContainer() ){
+                    gridLeft += $scope.grid.renderContainers.left.header[0].getBoundingClientRect().width;
+                  }
+
                   previousMouseX = event.pageX;
                   totalMouseMovement = 0;
                   rightMoveLimit = gridLeft + $scope.grid.getViewportWidth();
@@ -281,14 +285,15 @@
                     $document.on('touchend', upFn);
                   }
                 };
-                
+
                 var moveFn = function( event ) {
+                  var changeValue = event.pageX - previousMouseX;
+                  if ( changeValue === 0 ){ return; }
                   //Disable text selection in Chrome during column move
                   document.onselectstart = function() { return false; };
-                  
+
                   moveOccurred = true;
 
-                  var changeValue = event.pageX - previousMouseX;
                   if (!elmCloned) {
                     cloneElement();
                   }
@@ -297,7 +302,7 @@
                     previousMouseX = event.pageX;
                   }
                 };
-                
+
                 var upFn = function( event ){
                   //Re-enable text selection after column move
                   document.onselectstart = null;
@@ -307,7 +312,7 @@
                     movingElm.remove();
                     elmCloned = false;
                   }
-                  
+
                   offAllEvents();
                   onDownEvents();
 
@@ -366,12 +371,12 @@
                     }
                   }
                 };
-                
+
                 var onDownEvents = function(){
                   $contentsElm.on('touchstart', downFn);
                   $contentsElm.on('mousedown', downFn);
                 };
-                
+
                 var offAllEvents = function() {
                   $contentsElm.off('touchstart', downFn);
                   $contentsElm.off('mousedown', downFn);
@@ -382,7 +387,7 @@
                   $document.off('mouseup', upFn);
                   $document.off('touchend', upFn);
                 };
-                
+
                 onDownEvents();
 
 
@@ -429,12 +434,8 @@
                   var currentElmLeft = movingElm[0].getBoundingClientRect().left - 1;
                   var currentElmRight = movingElm[0].getBoundingClientRect().right;
                   var newElementLeft;
-                  if (gridUtil.detectBrowser() === 'ie') {
-                    newElementLeft = currentElmLeft + changeValue;
-                  }
-                  else {
-                    newElementLeft = currentElmLeft - gridLeft + changeValue;
-                  }
+
+                  newElementLeft = currentElmLeft - gridLeft + changeValue;
                   newElementLeft = newElementLeft < rightMoveLimit ? newElementLeft : rightMoveLimit;
 
                   //Update css of moving column to adjust to new left value or fire scroll in case column has reached edge of grid
