@@ -11,7 +11,7 @@
 
       <div class="alert alert-success" role="alert"><strong>Stable</strong> This feature is stable. There should no longer be breaking api changes without a deprecation warning.</div>
 
-      This module provides auto-resizing functionality to UI-Grid.
+      This module provides cell navigation functionality to UI-Grid.
    */
   var module = angular.module('ui.grid.cellNav', ['ui.grid']);
 
@@ -352,8 +352,8 @@
 
 
           /**
-           *  @ngdoc object
-           *  @name ui.grid.cellNav:Grid.cellNav
+           * @ngdoc object
+           * @name ui.grid.cellNav:Grid.cellNav
            * @description cellNav properties added to grid class
            */
           grid.cellNav = {};
@@ -363,10 +363,9 @@
           service.defaultGridOptions(grid.options);
 
           /**
-           *  @ngdoc object
-           *  @name ui.grid.cellNav.api:PublicApi
-           *
-           *  @description Public Api for cellNav feature
+           * @ngdoc object
+           * @name ui.grid.cellNav.api:PublicApi
+           * @description Public Api for cellNav feature
            */
           var publicApi = {
             events: {
@@ -443,6 +442,7 @@
                  * @methodOf  ui.grid.cellNav.api:PublicApi
                  * @description returns an array containing the current selection
                  * <br> array is empty if no selection has occurred
+                 * @returns {Array<RowCol>} An array of the current selection
                  */
                 getCurrentSelection: function () {
                   return grid.cellNav.focusedCells;
@@ -455,6 +455,7 @@
                  * @description returns the index in the order in which the RowCol was selected, returns -1 if the RowCol
                  * isn't selected
                  * @param {object} rowCol the rowCol to evaluate
+                 * @returns {number} The select index
                  */
                 rowColSelectIndex: function (rowCol) {
                   //return gridUtil.arrayContainsObjectWithProperty(grid.cellNav.focusedCells, 'col.uid', rowCol.col.uid) &&
@@ -636,6 +637,7 @@
          * @param {Grid} grid the grid you'd like to act upon, usually available
          * from gridApi.grid
          * @param {gridCol} upToCol the column to total up to and including
+         * @returns {number} The left width
          */
         getLeftWidth: function (grid, upToCol) {
           var width = 0;
